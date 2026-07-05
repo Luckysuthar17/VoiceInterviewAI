@@ -304,8 +304,8 @@ function Home() {
             )}
 
             {status === "listening" && (
-              <Button onClick={beginRecording} size="lg">
-                <Mic className="mr-2 h-4 w-4" /> Hold to answer — tap to start
+              <Button onClick={beginRecording} size="lg" className="w-full sm:w-auto">
+                <Mic className="mr-2 h-4 w-4" /> Tap to answer
               </Button>
             )}
 
