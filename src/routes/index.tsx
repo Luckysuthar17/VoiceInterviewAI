@@ -245,17 +245,17 @@ function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/40">
-      <div className="mx-auto max-w-3xl px-4 py-10">
-        <header className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Voice Interview Coach</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Voice-first mock interview practice, grounded in a reference Q&A set.
+      <div className="mx-auto max-w-3xl px-4 py-6 sm:py-10">
+        <header className="mb-6 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:mb-8 sm:items-center">
+          <div className="min-w-0">
+            <h1 className="truncate text-xl font-bold tracking-tight sm:text-3xl">Voice Interview Coach</h1>
+            <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+              Voice-first mock interview, grounded in a reference Q&A set.
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="shrink-0">
             <Select value={language} onValueChange={(v) => setLanguage(v as "en" | "hi" | "de")} disabled={status !== "idle" && status !== "done"}>
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-[110px] sm:w-32">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
