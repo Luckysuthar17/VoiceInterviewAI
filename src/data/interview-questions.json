@@ -1,0 +1,76 @@
+{
+  "role": "Software Engineer — General Screening",
+  "description": "A generic backend/full-stack screening interview. 10 questions covering fundamentals, systems thinking, and behaviour.",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Tell me briefly about yourself and a project you're proud of.",
+      "ideal_answer": "A concise 60–90 second pitch: current role, years of experience, primary stack, one concrete project with the problem, their specific contribution, the technical approach, and a measurable outcome (users, latency, revenue, reliability). Structure: context → problem → action → result.",
+      "must_cover": ["role/experience", "concrete project", "their specific contribution", "measurable outcome"],
+      "common_mistakes": ["reciting a resume chronologically", "no measurable result", "using 'we' without owning a piece"]
+    },
+    {
+      "id": "q2",
+      "question": "Explain the difference between a process and a thread, and when you'd choose one over the other.",
+      "ideal_answer": "Processes have isolated memory and their own address space; threads share memory within a process. Threads are cheaper to create and communicate via shared memory but require synchronisation. Use processes for isolation/fault-tolerance (e.g. Chrome tabs, worker pools that may crash) and threads for parallel work on shared data with low overhead. Mention GIL in Python as a caveat.",
+      "must_cover": ["memory isolation vs sharing", "cost/overhead difference", "when to pick each"],
+      "common_mistakes": ["conflating concurrency with parallelism", "claiming threads are always faster"]
+    },
+    {
+      "id": "q3",
+      "question": "What happens, step by step, when I type a URL into my browser and press enter?",
+      "ideal_answer": "DNS resolution (recursive resolver, caches, root/TLD/authoritative) → TCP handshake (or QUIC) → TLS handshake → HTTP request sent → server processes and responds (possibly hitting load balancer, app server, DB, cache) → browser parses HTML, requests sub-resources, builds DOM/CSSOM, runs JS, renders. Bonus: caching at each layer, HTTP/2 multiplexing.",
+      "must_cover": ["DNS", "TCP/TLS", "HTTP request/response", "browser rendering"],
+      "common_mistakes": ["skipping DNS", "no mention of TLS", "stopping at 'server sends HTML'"]
+    },
+    {
+      "id": "q4",
+      "question": "Explain the difference between SQL and NoSQL databases, and give an example of when you'd pick each.",
+      "ideal_answer": "SQL: relational, structured schema, ACID, strong consistency, good for transactions and complex joins (Postgres for a banking ledger). NoSQL: schema-flexible, horizontally scalable, various models (document, key-value, wide-column, graph); often eventual consistency. Pick NoSQL for high write throughput, flexible schema, or specific access patterns (DynamoDB for a session store, Mongo for evolving product catalog, Redis for cache).",
+      "must_cover": ["schema/consistency trade-offs", "ACID vs BASE", "concrete examples"],
+      "common_mistakes": ["saying 'NoSQL is faster'", "no concrete example", "ignoring consistency"]
+    },
+    {
+      "id": "q5",
+      "question": "How would you design a URL shortener like bit.ly? Walk me through it.",
+      "ideal_answer": "Clarify scale (reads/writes per second, latency, custom URLs, analytics). API: POST /shorten, GET /:code. Generate short code via base62 of an incrementing ID or hash+collision-check. Store mapping in a KV/SQL store keyed by code. Cache hot codes in Redis. Redirect with 301/302 (302 if analytics matter). Scale reads with cache + read replicas; scale writes with sharding by code. Discuss custom aliases, expiry, abuse prevention.",
+      "must_cover": ["clarifying requirements", "code generation strategy", "storage choice", "caching/redirect", "scale considerations"],
+      "common_mistakes": ["jumping to implementation without clarifying", "no caching", "ignoring collisions"]
+    },
+    {
+      "id": "q6",
+      "question": "What is the time and space complexity of your favourite sorting algorithm, and why?",
+      "ideal_answer": "Pick one and be precise. E.g. Quicksort: average O(n log n), worst O(n²) (mitigated with randomised pivot or introsort), space O(log n) for recursion, in-place. Mergesort: guaranteed O(n log n), O(n) extra space, stable. Explain trade-offs and when you'd pick each (mergesort for stability/linked lists, quicksort for in-place with random data).",
+      "must_cover": ["correct complexity", "reasoning for it", "trade-off vs another algorithm"],
+      "common_mistakes": ["stating complexity without reasoning", "confusing average and worst case"]
+    },
+    {
+      "id": "q7",
+      "question": "How do you approach debugging a production issue you can't reproduce locally?",
+      "ideal_answer": "Reproduce the environment differences first (data volume, config, concurrency). Gather signals: logs, metrics, traces, error rates around the incident. Form a hypothesis and test with the smallest safe experiment (feature flag, canary, targeted log). Add structured logging or tracing if missing. Bisect by time or deploy. Communicate status. Post-mortem: root cause, action items, prevention.",
+      "must_cover": ["gather signals", "hypothesis-driven", "communication", "prevention/post-mortem"],
+      "common_mistakes": ["'I add print statements'", "no mention of observability", "no communication step"]
+    },
+    {
+      "id": "q8",
+      "question": "Tell me about a time you disagreed with a teammate on a technical decision. How did you handle it?",
+      "ideal_answer": "STAR format. Situation and specific decision. Their view and yours, each with reasoning. How you sought data or a tie-breaker (prototype, benchmark, senior input). The outcome and — critically — what they learned, including any way they were wrong. Shows humility, evidence-based reasoning, and ability to disagree and commit.",
+      "must_cover": ["specific example", "both sides fairly stated", "how it was resolved", "reflection/learning"],
+      "common_mistakes": ["making the other person the villain", "no resolution", "no self-reflection"]
+    },
+    {
+      "id": "q9",
+      "question": "What is the difference between authentication and authorization?",
+      "ideal_answer": "Authentication = proving who you are (password, OAuth, passkey, MFA). Authorization = what you're allowed to do once authenticated (RBAC, ABAC, permissions/scopes). AuthN happens first, produces an identity/token; AuthZ is checked on every protected action. Example: logging into GitHub (authN) vs being allowed to push to a repo (authZ).",
+      "must_cover": ["clear definition of each", "ordering (authN before authZ)", "concrete example"],
+      "common_mistakes": ["using the terms interchangeably", "no example"]
+    },
+    {
+      "id": "q10",
+      "question": "Do you have any questions for me?",
+      "ideal_answer": "Ask 1–2 thoughtful questions that show research and genuine interest: about the team's biggest current challenge, how success is measured in the first 6 months, engineering culture (code review, on-call, testing), or a specific product/technical decision. Avoid questions easily answered by the website (salary, holidays should come later).",
+      "must_cover": ["at least one specific, thoughtful question", "shows interest in the role/team"],
+      "common_mistakes": ["'No, I think you covered everything'", "only asking about perks/salary"]
+    }
+  ]
+}
