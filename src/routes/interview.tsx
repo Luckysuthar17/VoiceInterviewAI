@@ -19,7 +19,7 @@ type Feedback = {
   next_steps: string[];
 };
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/interview")({
   head: () => ({
     meta: [
       { title: "Voice Interview Coach — Practice Mock Interviews with AI" },
