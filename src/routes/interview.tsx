@@ -48,6 +48,8 @@ const TOTAL = QUESTIONS.length;
 
 function Home() {
   const [language, setLanguage] = useState<"en" | "hi" | "de">("en");
+  const [domain, setDomain] = useState<string>(DOMAINS[0].id);
+  const [experience, setExperience] = useState<string>(EXPERIENCES[0].id);
   const [status, setStatus] = useState<"idle" | "greeting" | "listening" | "recording" | "thinking" | "speaking" | "done">("idle");
   const [transcript, setTranscript] = useState<Msg[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
