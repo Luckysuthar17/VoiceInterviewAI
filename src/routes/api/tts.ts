@@ -4,7 +4,7 @@ export const Route = createFileRoute("/api/tts")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const key = process.env.GEMINI_API_KEY;
+        const key = process.env.GROQ_API_KEY;
         if (!key) return new Response("Missing GEMINI_API_KEY", { status: 500 });
 
         const { text, voice } = (await request.json()) as {
