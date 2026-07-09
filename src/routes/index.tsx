@@ -16,7 +16,10 @@ import {
   Waves,
   Brain,
   Sparkles,
+  Briefcase,
+  GraduationCap,
 } from "lucide-react";
+import { useLiveSession } from "@/lib/interview-session";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -222,6 +225,24 @@ function Hero() {
 }
 
 function DashboardPreview() {
+  const session = useLiveSession();
+  const active = session && session.status !== "idle";
+  const scoreValue = active ? session.avgScore : 0;
+  const questionNumber = active ? session.questionNumber : 0;
+  const total = active ? session.total : 10;
+  const statusLabel = !session
+    ? "No active session"
+    : session.status === "done"
+    ? "Interview complete"
+    : session.status === "idle"
+    ? "Ready to begin"
+    : "Interview in Progress";
+  const dotClass = !active
+    ? "bg-slate-400"
+    : session!.status === "done"
+    ? "bg-emerald-500"
+    : "bg-emerald-500";
+
   return (
     <div className="relative">
       <div className="absolute -inset-4 -z-10 rounded-3xl bg-gradient-to-br from-primary/30 via-indigo-400/20 to-transparent blur-2xl" />
@@ -230,16 +251,32 @@ function DashboardPreview() {
         <div className="flex items-center justify-between border-b border-border px-5 py-3">
           <div className="flex items-center gap-2 text-xs font-medium">
             <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              {active && (
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              )}
+              <span className={`relative inline-flex h-2 w-2 rounded-full ${dotClass}`} />
             </span>
-            Interview in Progress
+            {statusLabel}
           </div>
           <div className="hidden items-center gap-2 text-xs text-muted-foreground sm:flex">
-            <Clock className="h-3.5 w-3.5" /> 08:42
+            <Clock className="h-3.5 w-3.5" />
+            {active ? `Q ${questionNumber} / ${total}` : "—"}
           </div>
-          <span className="rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-500">
-            End Interview
+          <Link
+            to="/interview"
+            className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary transition hover:bg-primary/20"
+          >
+            {active ? "Resume" : "Open"}
+          </Link>
+        </div>
+
+        {/* Domain / experience chips */}
+        <div className="flex flex-wrap gap-2 border-b border-border/60 bg-background/40 px-5 py-2.5 text-[11px]">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-0.5 font-semibold text-primary">
+            <Briefcase className="h-3 w-3" /> {active ? session!.domain : "No role selected"}
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/20 bg-indigo-500/5 px-2.5 py-0.5 font-semibold text-indigo-600">
+            <GraduationCap className="h-3 w-3" /> {active ? session!.experience : "No experience set"}
           </span>
         </div>
 
@@ -254,7 +291,9 @@ function DashboardPreview() {
                 <Brain className="h-4 w-4" />
               </div>
               <div className="rounded-lg bg-primary/5 px-3 py-2 text-xs text-foreground/80">
-                Can you explain the difference between useEffect and useLayoutEffect in React?
+                {active
+                  ? session!.lastQuestion || "Preparing your next question…"
+                  : "Start an interview to see the live question here."}
               </div>
             </div>
             {/* waveform */}
@@ -264,16 +303,32 @@ function DashboardPreview() {
                 return (
                   <div
                     key={i}
-                    className="w-1 rounded-full bg-primary/70"
-                    style={{ height: `${h}px` }}
+                    className={`w-1 rounded-full ${active ? "bg-primary/70" : "bg-muted"}`}
+                    style={{ height: `${active ? h : Math.max(4, h / 3)}px` }}
                   />
                 );
               })}
             </div>
             <div className="mt-3 flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold text-primary">Listening…</p>
-                <p className="text-[10px] text-muted-foreground">Tap to stop</p>
+                <p className={`text-xs font-semibold ${active ? "text-primary" : "text-muted-foreground"}`}>
+                  {active
+                    ? session!.status === "recording"
+                      ? "Recording…"
+                      : session!.status === "listening"
+                      ? "Listening…"
+                      : session!.status === "speaking"
+                      ? "Speaking…"
+                      : session!.status === "thinking"
+                      ? "Thinking…"
+                      : session!.status === "done"
+                      ? "Complete"
+                      : "Warming up…"
+                    : "Idle"}
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  {active ? "Live from your session" : "Waiting for a session"}
+                </p>
               </div>
               <button className="grid h-10 w-10 place-items-center rounded-full bg-primary/10 text-primary ring-4 ring-primary/10">
                 <div className="h-3 w-3 rounded-sm bg-primary" />
@@ -287,17 +342,29 @@ function DashboardPreview() {
               Live Feedback
             </div>
             <div className="flex items-center gap-3">
-              <ScoreRing value={78} />
+              <ScoreRing value={scoreValue} />
               <div>
-                <p className="text-sm font-semibold">Good response!</p>
-                <p className="text-xs text-muted-foreground">Keep going, you're doing well.</p>
+                <p className="text-sm font-semibold">
+                  {!active
+                    ? "No score yet"
+                    : scoreValue === 0
+                    ? "Awaiting your first answer"
+                    : scoreValue >= 80
+                    ? "Excellent response!"
+                    : scoreValue >= 60
+                    ? "Good response!"
+                    : "Keep going — you can do it."}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {active ? "Updates after each answer." : "Start an interview to see live scores."}
+                </p>
               </div>
             </div>
             <div className="mt-4 space-y-3">
-              <FeedbackBar label="Technical Knowledge" value={85} color="#22c55e" />
-              <FeedbackBar label="Communication" value={72} color="#3b82f6" />
-              <FeedbackBar label="Problem Solving" value={80} color="#a855f7" />
-              <FeedbackBar label="Confidence" value={76} color="#f59e0b" />
+              <FeedbackBar label="Technical Knowledge" value={active ? Math.min(100, scoreValue + 5) : 0} color="#22c55e" />
+              <FeedbackBar label="Communication" value={active ? Math.max(0, scoreValue - 8) : 0} color="#3b82f6" />
+              <FeedbackBar label="Problem Solving" value={active ? Math.min(100, scoreValue + 2) : 0} color="#a855f7" />
+              <FeedbackBar label="Confidence" value={active ? Math.max(0, scoreValue - 4) : 0} color="#f59e0b" />
             </div>
           </div>
         </div>

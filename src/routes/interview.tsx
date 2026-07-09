@@ -1,13 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Mic, Square, Loader2, Play, RotateCcw, ArrowLeft, Waves, Brain,
-  MessageSquare, Clock, Sparkles, CheckCircle2, TrendingUp,
+  MessageSquare, Clock, Sparkles, CheckCircle2, TrendingUp, Briefcase, GraduationCap,
 } from "lucide-react";
 import { startRecording, extForMime, type RecorderHandle } from "@/lib/recorder";
 import questionsData from "@/data/interview-questions.json";
+import {
+  DOMAINS,
+  EXPERIENCES,
+  domainLabel,
+  experienceLabel,
+  writeSession,
+} from "@/lib/interview-session";
 
 type Msg = { role: "user" | "assistant"; content: string };
 type Grade = { questionId: string; question: string; score: number; note: string };
@@ -41,6 +48,8 @@ const TOTAL = QUESTIONS.length;
 
 function Home() {
   const [language, setLanguage] = useState<"en" | "hi" | "de">("en");
+  const [domain, setDomain] = useState<string>(DOMAINS[0].id);
+  const [experience, setExperience] = useState<string>(EXPERIENCES[0].id);
   const [status, setStatus] = useState<"idle" | "greeting" | "listening" | "recording" | "thinking" | "speaking" | "done">("idle");
   const [transcript, setTranscript] = useState<Msg[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -95,6 +104,8 @@ function Home() {
         body: JSON.stringify({
           mode: "start",
           language,
+          domain: domainLabel(domain),
+          experience: experienceLabel(experience),
           currentIndex: 0,
           followUpsUsed: 0,
           history: [],
@@ -109,7 +120,7 @@ function Home() {
       setError(e instanceof Error ? e.message : String(e));
       setStatus("idle");
     }
-  }, [language, speak]);
+  }, [language, domain, experience, speak]);
 
   const beginRecording = useCallback(async () => {
     setError(null);
@@ -159,6 +170,8 @@ function Home() {
         body: JSON.stringify({
           mode: "turn",
           language,
+          domain: domainLabel(domain),
+          experience: experienceLabel(experience),
           currentIndex,
           followUpsUsed: followUps,
           history: nextTranscript,
@@ -203,6 +216,8 @@ function Home() {
           body: JSON.stringify({
             mode: "feedback",
             language,
+            domain: domainLabel(domain),
+            experience: experienceLabel(experience),
             currentIndex,
             followUpsUsed: followUps,
             history: withAssistant,
@@ -228,7 +243,7 @@ function Home() {
       setError(e instanceof Error ? e.message : String(e));
       setStatus("listening");
     }
-  }, [language, currentIndex, followUps, transcript, grades, speak]);
+  }, [language, domain, experience, currentIndex, followUps, transcript, grades, speak]);
 
   const reset = useCallback(() => {
     audioRef.current?.pause();
@@ -240,6 +255,7 @@ function Home() {
     setCurrentIndex(0);
     setFollowUps(0);
     setError(null);
+    writeSession(null);
   }, []);
 
   const progress = Math.min(currentIndex + (status === "done" ? 1 : 0), TOTAL);
@@ -247,6 +263,32 @@ function Home() {
   const questionNumber = Math.min(progress + (status === "idle" ? 0 : 1), TOTAL);
   const isActive = status === "recording";
   const isListeningState = status === "listening";
+
+  const avgScore = useMemo(() => {
+    if (!grades.length) return 0;
+    return Math.round((grades.reduce((s, g) => s + g.score, 0) / grades.length) * 20);
+  }, [grades]);
+
+  const lastQuestion = QUESTIONS[Math.min(currentIndex, TOTAL - 1)]?.question ?? "";
+
+  // Sync session snapshot to localStorage so the landing page can reflect it.
+  useEffect(() => {
+    if (status === "idle" && transcript.length === 0) {
+      writeSession(null);
+      return;
+    }
+    writeSession({
+      status,
+      domain: domainLabel(domain),
+      experience: experienceLabel(experience),
+      language,
+      questionNumber,
+      total: TOTAL,
+      avgScore,
+      lastQuestion,
+      updatedAt: Date.now(),
+    });
+  }, [status, transcript.length, domain, experience, language, questionNumber, avgScore, lastQuestion]);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background font-sans text-foreground antialiased">
@@ -272,16 +314,16 @@ function Home() {
           <div className="flex items-center gap-2">
             <Link
               to="/"
-              className="hidden h-9 items-center gap-1.5 rounded-full border border-border/60 bg-white/60 px-3 text-xs font-medium text-muted-foreground backdrop-blur transition-colors hover:text-foreground sm:inline-flex"
+              className="hidden h-9 items-center gap-1.5 rounded-full border border-border/60 bg-white/60 px-3 text-xs font-medium text-muted-foreground backdrop-blur transition-colors hover:text-foreground md:inline-flex"
             >
-              <ArrowLeft className="h-3.5 w-3.5" /> Back to home
+              <ArrowLeft className="h-3.5 w-3.5" /> Home
             </Link>
             <Select
               value={language}
               onValueChange={(v) => setLanguage(v as "en" | "hi" | "de")}
               disabled={status !== "idle" && status !== "done"}
             >
-              <SelectTrigger className="h-9 w-[120px] rounded-full border-border/60 bg-white/60 backdrop-blur">
+              <SelectTrigger className="h-9 w-[92px] rounded-full border-border/60 bg-white/60 backdrop-blur sm:w-[110px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -293,6 +335,50 @@ function Home() {
           </div>
         </div>
       </header>
+
+      {/* Setup panel — visible before / after an interview */}
+      {(status === "idle" || status === "done") && (
+        <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-6 sm:pt-8">
+          <div className="grid gap-3 rounded-2xl border border-white/50 bg-white/60 p-4 shadow-sm backdrop-blur-xl sm:grid-cols-2 sm:p-5">
+            <div>
+              <label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                <Briefcase className="h-3.5 w-3.5 text-primary" /> Interview Domain
+              </label>
+              <Select value={domain} onValueChange={setDomain}>
+                <SelectTrigger className="h-11 rounded-xl border-border/60 bg-white/70 backdrop-blur">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DOMAINS.map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      <span className="font-medium">{d.label}</span>
+                      <span className="ml-2 text-xs text-muted-foreground">— {d.description}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                <GraduationCap className="h-3.5 w-3.5 text-primary" /> Experience Level
+              </label>
+              <Select value={experience} onValueChange={setExperience}>
+                <SelectTrigger className="h-11 rounded-xl border-border/60 bg-white/70 backdrop-blur">
+                  <SelectValue placeholder="Select experience" />
+                </SelectTrigger>
+                <SelectContent>
+                  {EXPERIENCES.map((e) => (
+                    <SelectItem key={e.id} value={e.id}>
+                      <span className="font-medium">{e.label}</span>
+                      <span className="ml-2 text-xs text-muted-foreground">— {e.description}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
         {/* Session bar */}
@@ -315,6 +401,12 @@ function Home() {
             </span>
             <span className="hidden items-center gap-1.5 text-xs text-muted-foreground sm:inline-flex">
               <Clock className="h-3.5 w-3.5" /> Question {questionNumber} of {TOTAL}
+            </span>
+            <span className="hidden items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-0.5 text-[11px] font-semibold text-primary md:inline-flex">
+              <Briefcase className="h-3 w-3" /> {domainLabel(domain)}
+            </span>
+            <span className="hidden items-center gap-1.5 rounded-full border border-indigo-500/20 bg-indigo-500/5 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-600 md:inline-flex">
+              <GraduationCap className="h-3 w-3" /> {experienceLabel(experience)}
             </span>
           </div>
           <div className="flex items-center gap-2">
