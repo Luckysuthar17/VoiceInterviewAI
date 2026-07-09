@@ -26,13 +26,19 @@ export function buildInterviewerSystemPrompt(params: {
   language: string;
   currentIndex: number;
   followUpsUsed: number;
+  domain?: string;
+  experience?: string;
 }) {
   const langName = LANGUAGES[params.language] ?? "English";
   const total = QUESTIONS.questions.length;
   const q = QUESTIONS.questions[params.currentIndex];
+  const domain = params.domain ?? QUESTIONS.role;
+  const experience = params.experience ?? "any experience level";
 
-  return `You are conducting a realistic mock interview for the role: "${QUESTIONS.role}".
-${QUESTIONS.description}
+  return `You are conducting a realistic mock interview for the role: "${domain}".
+Candidate experience level: ${experience}.
+Calibrate depth and expectations to this experience level: go easier on fresher / 1–2 yrs candidates and push for depth, trade-offs, and leadership signals for senior (6+ yrs).
+Tailor the framing, examples, and follow-ups to the ${domain} domain, even though the reference question below is generic.
 
 CONVERSATION LANGUAGE: ${langName}. Speak entirely in ${langName}, including the questions (translate them naturally if the reference is in English). Keep a warm, professional, human tone — like a real interviewer, not a chatbot.
 
