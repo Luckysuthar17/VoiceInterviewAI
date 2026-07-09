@@ -104,6 +104,8 @@ export const Route = createFileRoute("/api/interview")({
             language: payload.language,
             currentIndex: payload.currentIndex,
             followUpsUsed: payload.followUpsUsed,
+            domain: payload.domain,
+            experience: payload.experience,
           });
           const out = await callGateway({
             model: "google/gemini-2.5-flash",
