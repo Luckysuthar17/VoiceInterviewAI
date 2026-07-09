@@ -57,12 +57,14 @@ export const Route = createFileRoute("/api/interview")({
         try {
           if (payload.mode === "start") {
             const q = QUESTIONS.questions[0];
-            const sys = `You are a friendly interviewer. Greet the candidate briefly in ${payload.language === "hi" ? "Hindi" : payload.language === "de" ? "German" : "English"}, mention this is a mock interview for a ${QUESTIONS.role}, and ask the first question naturally. Keep it under 40 words total. Return ONLY the spoken text, no JSON.`;
+            const roleForGreeting = payload.domain ?? QUESTIONS.role;
+            const expNote = payload.experience ? ` (candidate experience: ${payload.experience})` : "";
+            const sys = `You are a friendly interviewer. Greet the candidate briefly in ${payload.language === "hi" ? "Hindi" : payload.language === "de" ? "German" : "English"}, mention this is a mock interview for a ${roleForGreeting}${expNote}, and ask the first question naturally, tailored to that role. Keep it under 45 words total. Return ONLY the spoken text, no JSON.`;
             const out = await callGateway({
               model: "google/gemini-2.5-flash",
               messages: [
                 { role: "system", content: sys },
-                { role: "user", content: `First question to weave in: ${q.question}` },
+                { role: "user", content: `First question to weave in (adapt to the role): ${q.question}` },
               ],
             });
             return Response.json({
