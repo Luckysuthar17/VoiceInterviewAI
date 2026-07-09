@@ -402,6 +402,12 @@ function Home() {
             <span className="hidden items-center gap-1.5 text-xs text-muted-foreground sm:inline-flex">
               <Clock className="h-3.5 w-3.5" /> Question {questionNumber} of {TOTAL}
             </span>
+            <span className="hidden items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-0.5 text-[11px] font-semibold text-primary md:inline-flex">
+              <Briefcase className="h-3 w-3" /> {domainLabel(domain)}
+            </span>
+            <span className="hidden items-center gap-1.5 rounded-full border border-indigo-500/20 bg-indigo-500/5 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-600 md:inline-flex">
+              <GraduationCap className="h-3 w-3" /> {experienceLabel(experience)}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <StatusPill status={status} />
