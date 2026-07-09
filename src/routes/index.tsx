@@ -16,7 +16,10 @@ import {
   Waves,
   Brain,
   Sparkles,
+  Briefcase,
+  GraduationCap,
 } from "lucide-react";
+import { useLiveSession } from "@/lib/interview-session";
 
 export const Route = createFileRoute("/")({
   head: () => ({
