@@ -104,6 +104,8 @@ function Home() {
         body: JSON.stringify({
           mode: "start",
           language,
+          domain: domainLabel(domain),
+          experience: experienceLabel(experience),
           currentIndex: 0,
           followUpsUsed: 0,
           history: [],
@@ -118,7 +120,7 @@ function Home() {
       setError(e instanceof Error ? e.message : String(e));
       setStatus("idle");
     }
-  }, [language, speak]);
+  }, [language, domain, experience, speak]);
 
   const beginRecording = useCallback(async () => {
     setError(null);
