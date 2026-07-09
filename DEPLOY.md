@@ -5,7 +5,7 @@ This project is a **TanStack Start** app (React 19 + Vite 7) with two routes:
 - `/` — marketing landing page
 - `/interview` — the voice interview agent (STT → LLM → TTS)
 
-It also has three server routes under `src/routes/api/*` (`stt`, `tts`, `interview`) that call OpenAI + Gemini via the Lovable AI Gateway using `LOVABLE_API_KEY`.
+It also has three server routes under `src/routes/api/*` (`stt`, `tts`, `interview`) that call OpenAI + Gemini via the Lovable AI Gateway using `GEMINI_API_KEY`.
 
 ---
 
@@ -14,7 +14,7 @@ It also has three server routes under `src/routes/api/*` (`stt`, `tts`, `intervi
 ### Prerequisites
 - **Node 20+** (or **Bun 1.1+** — recommended, matches what Lovable uses)
 - A microphone-capable browser (Chrome, Edge, Safari)
-- `LOVABLE_API_KEY` (auto-provisioned when the Lovable Cloud button is on — copy from Project → Cloud → Advanced → Secrets)
+- `GEMINI_API_KEY` (auto-provisioned when the Lovable Cloud button is on — copy from Project → Cloud → Advanced → Secrets)
 
 ### Steps
 ```bash
@@ -29,7 +29,7 @@ bun install
 # 3. Environment
 cp .env.example .env    # then edit .env
 # .env should contain:
-#   LOVABLE_API_KEY=lv_...
+#   GEMINI_API_KEY=lv_...
 #   LOVABLE_AI_BASE_URL=https://ai.gateway.lovable.dev/v1   (optional, has default)
 
 # 4. Start the dev server
@@ -73,7 +73,7 @@ TanStack Start runs on any Node/Edge host. Vercel is the easiest.
    - Build command: `bun run build` (or `npm run build`)
    - Output: `.output` (TanStack Start handles this automatically)
 3. **Environment Variables** → add:
-   - `LOVABLE_API_KEY` = your key from Lovable → Cloud → Secrets
+   - `GEMINI_API_KEY` = your key from Lovable → Cloud → Secrets
 4. Click **Deploy**. First deploy takes ~2 min.
 
 Your app is now live at `https://<project>.vercel.app` with `/` (landing) and `/interview` (agent) working.
@@ -91,7 +91,7 @@ Click the **Publish** button (top-right in the Lovable editor). Your app is inst
 https://<project>.lovable.app
 ```
 
-No env-var setup required — `LOVABLE_API_KEY` is auto-injected.
+No env-var setup required — `GEMINI_API_KEY` is auto-injected.
 To connect a custom domain: **Project Settings → Domains → Connect Domain**.
 
 ---
@@ -106,7 +106,7 @@ The landing page and the interview agent are both fully responsive (breakpoints:
 
 | Symptom | Fix |
 |---|---|
-| `LOVABLE_API_KEY is not configured` in the browser console | Add the env var to Vercel and redeploy, or restart `bun dev` after editing `.env` |
+| `GEMINI_API_KEY is not configured` in the browser console | Add the env var to Vercel and redeploy, or restart `bun dev` after editing `.env` |
 | Mic button does nothing | Grant microphone permission in the browser site settings |
 | STT returns empty text | Speak louder / longer; the client rejects clips <2 KB |
 | TTS silent | Check network tab for `/api/tts` 200; some browsers block auto-play — first click on the page satisfies that |

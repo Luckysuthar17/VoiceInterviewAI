@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as InterviewRouteImport } from './routes/interview'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
-import { Route as ApiSttRouteImport } from './routes/api/stt'
 import { Route as ApiInterviewRouteImport } from './routes/api/interview'
 
 const InterviewRoute = InterviewRouteImport.update({
@@ -30,11 +29,6 @@ const ApiTtsRoute = ApiTtsRouteImport.update({
   path: '/api/tts',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiSttRoute = ApiSttRouteImport.update({
-  id: '/api/stt',
-  path: '/api/stt',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiInterviewRoute = ApiInterviewRouteImport.update({
   id: '/api/interview',
   path: '/api/interview',
@@ -45,14 +39,12 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/interview': typeof InterviewRoute
   '/api/interview': typeof ApiInterviewRoute
-  '/api/stt': typeof ApiSttRoute
   '/api/tts': typeof ApiTtsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/interview': typeof InterviewRoute
   '/api/interview': typeof ApiInterviewRoute
-  '/api/stt': typeof ApiSttRoute
   '/api/tts': typeof ApiTtsRoute
 }
 export interface FileRoutesById {
@@ -60,28 +52,20 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/interview': typeof InterviewRoute
   '/api/interview': typeof ApiInterviewRoute
-  '/api/stt': typeof ApiSttRoute
   '/api/tts': typeof ApiTtsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/interview' | '/api/interview' | '/api/stt' | '/api/tts'
+  fullPaths: '/' | '/interview' | '/api/interview' | '/api/tts'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/interview' | '/api/interview' | '/api/stt' | '/api/tts'
-  id:
-    | '__root__'
-    | '/'
-    | '/interview'
-    | '/api/interview'
-    | '/api/stt'
-    | '/api/tts'
+  to: '/' | '/interview' | '/api/interview' | '/api/tts'
+  id: '__root__' | '/' | '/interview' | '/api/interview' | '/api/tts'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   InterviewRoute: typeof InterviewRoute
   ApiInterviewRoute: typeof ApiInterviewRoute
-  ApiSttRoute: typeof ApiSttRoute
   ApiTtsRoute: typeof ApiTtsRoute
 }
 
@@ -108,13 +92,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTtsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/stt': {
-      id: '/api/stt'
-      path: '/api/stt'
-      fullPath: '/api/stt'
-      preLoaderRoute: typeof ApiSttRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/interview': {
       id: '/api/interview'
       path: '/api/interview'
@@ -129,9 +106,18 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   InterviewRoute: InterviewRoute,
   ApiInterviewRoute: ApiInterviewRoute,
-  ApiSttRoute: ApiSttRoute,
   ApiTtsRoute: ApiTtsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

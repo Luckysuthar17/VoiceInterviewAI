@@ -15,6 +15,13 @@ import {
   experienceLabel,
   writeSession,
 } from "@/lib/interview-session";
+import {
+  speakBrowser,
+  cancelBrowserSpeech,
+  startBrowserRecognition,
+  type BrowserRecognitionHandle,
+} from "@/lib/browser-speech";
+import { getSttProvider, getTtsProvider } from "@/lib/speech-config";
 
 type Msg = { role: "user" | "assistant"; content: string };
 type Grade = { questionId: string; question: string; score: number; note: string };
@@ -59,6 +66,7 @@ function Home() {
   const [error, setError] = useState<string | null>(null);
 
   const recorderRef = useRef<RecorderHandle | null>(null);
+  const browserRecognitionRef = useRef<BrowserRecognitionHandle | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const transcriptEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -66,28 +74,41 @@ function Home() {
     transcriptEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [transcript, status]);
 
-  const speak = useCallback(async (text: string) => {
-    setStatus("speaking");
-    try {
-      const res = await fetch("/api/tts", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ text }),
-      });
-      if (!res.ok) throw new Error(`TTS failed: ${res.status}`);
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      audioRef.current = audio;
-      await new Promise<void>((resolve) => {
-        audio.onended = () => { URL.revokeObjectURL(url); resolve(); };
-        audio.onerror = () => { URL.revokeObjectURL(url); resolve(); };
-        audio.play().catch(() => resolve());
-      });
-    } catch (e) {
-      console.error(e);
-    }
-  }, []);
+  // speak() always resolves only once the interviewer has fully finished
+  // talking. Every caller awaits this before flipping status to
+  // "listening" or starting the microphone -- this is what guarantees the
+  // mic never opens while the interviewer is still speaking.
+  const speak = useCallback(
+    async (text: string) => {
+      setStatus("speaking");
+      try {
+        if (getTtsProvider() === "browser") {
+          await speakBrowser(text, language);
+          return;
+        }
+
+        // Production path: OpenAI TTS via our server route.
+        const res = await fetch("/api/tts", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ text }),
+        });
+        if (!res.ok) throw new Error(`TTS failed: ${res.status}`);
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audioRef.current = audio;
+        await new Promise<void>((resolve) => {
+          audio.onended = () => { URL.revokeObjectURL(url); resolve(); };
+          audio.onerror = () => { URL.revokeObjectURL(url); resolve(); };
+          audio.play().catch(() => resolve());
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    [language],
+  );
 
   const startInterview = useCallback(async () => {
     setError(null);
@@ -125,35 +146,53 @@ function Home() {
   const beginRecording = useCallback(async () => {
     setError(null);
     try {
+      if (getSttProvider() === "browser") {
+        const handle = await startBrowserRecognition(language);
+        browserRecognitionRef.current = handle;
+        setStatus("recording");
+        return;
+      }
       const handle = await startRecording();
       recorderRef.current = handle;
       setStatus("recording");
     } catch (e) {
-      setError("Microphone permission denied.");
+      setError(e instanceof Error ? e.message : "Microphone permission denied.");
     }
-  }, []);
+  }, [language]);
 
   const finishRecording = useCallback(async () => {
-    if (!recorderRef.current) return;
-    setStatus("thinking");
-    const blob = await recorderRef.current.stop();
-    recorderRef.current = null;
+    const usingBrowserStt = getSttProvider() === "browser";
+    if (usingBrowserStt && !browserRecognitionRef.current) return;
+    if (!usingBrowserStt && !recorderRef.current) return;
 
-    if (blob.size < 2048) {
-      setError("Recording too short. Please try again.");
-      setStatus("listening");
-      return;
-    }
+    setStatus("thinking");
 
     try {
       // 1. STT
-      const form = new FormData();
-      form.append("file", blob, `answer.${extForMime(blob.type)}`);
-      form.append("language", language);
-      const sttRes = await fetch("/api/stt", { method: "POST", body: form });
-      const sttData = await sttRes.json();
-      if (!sttRes.ok) throw new Error(sttData.error ?? "STT failed");
-      const userText: string = (sttData.text ?? "").trim();
+      let userText: string;
+
+      if (usingBrowserStt) {
+        const handle = browserRecognitionRef.current!;
+        browserRecognitionRef.current = null;
+        userText = (await handle.stop()).trim();
+      } else {
+        const handle = recorderRef.current!;
+        recorderRef.current = null;
+        const blob = await handle.stop();
+        if (blob.size < 2048) {
+          setError("Recording too short. Please try again.");
+          setStatus("listening");
+          return;
+        }
+        const form = new FormData();
+        form.append("file", blob, `answer.${extForMime(blob.type)}`);
+        form.append("language", language);
+        const sttRes = await fetch("/api/stt", { method: "POST", body: form });
+        const sttData = await sttRes.json();
+        if (!sttRes.ok) throw new Error(sttData.error ?? "STT failed");
+        userText = (sttData.text ?? "").trim();
+      }
+
       if (!userText) {
         setError("I couldn't hear that. Please try again.");
         setStatus("listening");
@@ -247,7 +286,10 @@ function Home() {
 
   const reset = useCallback(() => {
     audioRef.current?.pause();
+    cancelBrowserSpeech();
     recorderRef.current?.cancel();
+    browserRecognitionRef.current?.cancel();
+    browserRecognitionRef.current = null;
     setStatus("idle");
     setTranscript([]);
     setGrades([]);

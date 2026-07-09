@@ -45,4 +45,4 @@ Turn = STT (~500–900 ms) + LLM (~700–1500 ms with Gemini 2.5 Flash) + TTS TT
 
 ## Env
 
-- `LOVABLE_API_KEY` — auto-provisioned. Powers STT, TTS, and chat via the Lovable AI Gateway.
+- `GEMINI_API_KEY` — auto-provisioned. Powers STT, TTS, and chat via the Lovable AI Gateway.
