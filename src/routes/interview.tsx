@@ -1,13 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Mic, Square, Loader2, Play, RotateCcw, ArrowLeft, Waves, Brain,
-  MessageSquare, Clock, Sparkles, CheckCircle2, TrendingUp,
+  MessageSquare, Clock, Sparkles, CheckCircle2, TrendingUp, Briefcase, GraduationCap,
 } from "lucide-react";
 import { startRecording, extForMime, type RecorderHandle } from "@/lib/recorder";
 import questionsData from "@/data/interview-questions.json";
+import {
+  DOMAINS,
+  EXPERIENCES,
+  domainLabel,
+  experienceLabel,
+  writeSession,
+} from "@/lib/interview-session";
 
 type Msg = { role: "user" | "assistant"; content: string };
 type Grade = { questionId: string; question: string; score: number; note: string };
