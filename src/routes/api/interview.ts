@@ -43,8 +43,16 @@ export const Route = createFileRoute("/api/interview")({
           language: string;
           currentIndex: number;
           followUpsUsed: number;
+          domain?: string;
+          experience?: string;
           history: ChatMessage[];
           grades?: Array<{
+            questionId: string;
+            question: string;
+            score: number;
+            note: string;
+          }>;
+        };
             questionId: string;
             question: string;
             score: number;
