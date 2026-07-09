@@ -1,5 +1,4 @@
-// nitro.config.ts
-import { defineNitroConfig } from "nitropack/config";
+import { defineNitroConfig } from "nitro/config";
 
 export default defineNitroConfig({
   preset: "node-server",
