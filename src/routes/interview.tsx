@@ -314,16 +314,16 @@ function Home() {
           <div className="flex items-center gap-2">
             <Link
               to="/"
-              className="hidden h-9 items-center gap-1.5 rounded-full border border-border/60 bg-white/60 px-3 text-xs font-medium text-muted-foreground backdrop-blur transition-colors hover:text-foreground sm:inline-flex"
+              className="hidden h-9 items-center gap-1.5 rounded-full border border-border/60 bg-white/60 px-3 text-xs font-medium text-muted-foreground backdrop-blur transition-colors hover:text-foreground md:inline-flex"
             >
-              <ArrowLeft className="h-3.5 w-3.5" /> Back to home
+              <ArrowLeft className="h-3.5 w-3.5" /> Home
             </Link>
             <Select
               value={language}
               onValueChange={(v) => setLanguage(v as "en" | "hi" | "de")}
               disabled={status !== "idle" && status !== "done"}
             >
-              <SelectTrigger className="h-9 w-[120px] rounded-full border-border/60 bg-white/60 backdrop-blur">
+              <SelectTrigger className="h-9 w-[92px] rounded-full border-border/60 bg-white/60 backdrop-blur sm:w-[110px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -335,6 +335,50 @@ function Home() {
           </div>
         </div>
       </header>
+
+      {/* Setup panel — visible before / after an interview */}
+      {(status === "idle" || status === "done") && (
+        <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-6 sm:pt-8">
+          <div className="grid gap-3 rounded-2xl border border-white/50 bg-white/60 p-4 shadow-sm backdrop-blur-xl sm:grid-cols-2 sm:p-5">
+            <div>
+              <label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                <Briefcase className="h-3.5 w-3.5 text-primary" /> Interview Domain
+              </label>
+              <Select value={domain} onValueChange={setDomain}>
+                <SelectTrigger className="h-11 rounded-xl border-border/60 bg-white/70 backdrop-blur">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DOMAINS.map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      <span className="font-medium">{d.label}</span>
+                      <span className="ml-2 text-xs text-muted-foreground">— {d.description}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                <GraduationCap className="h-3.5 w-3.5 text-primary" /> Experience Level
+              </label>
+              <Select value={experience} onValueChange={setExperience}>
+                <SelectTrigger className="h-11 rounded-xl border-border/60 bg-white/70 backdrop-blur">
+                  <SelectValue placeholder="Select experience" />
+                </SelectTrigger>
+                <SelectContent>
+                  {EXPERIENCES.map((e) => (
+                    <SelectItem key={e.id} value={e.id}>
+                      <span className="font-medium">{e.label}</span>
+                      <span className="ml-2 text-xs text-muted-foreground">— {e.description}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
         {/* Session bar */}
