@@ -216,6 +216,8 @@ function Home() {
           body: JSON.stringify({
             mode: "feedback",
             language,
+            domain: domainLabel(domain),
+            experience: experienceLabel(experience),
             currentIndex,
             followUpsUsed: followUps,
             history: withAssistant,
