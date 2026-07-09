@@ -53,12 +53,6 @@ export const Route = createFileRoute("/api/interview")({
             note: string;
           }>;
         };
-            questionId: string;
-            question: string;
-            score: number;
-            note: string;
-          }>;
-        };
 
         try {
           if (payload.mode === "start") {
