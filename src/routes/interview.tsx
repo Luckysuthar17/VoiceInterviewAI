@@ -243,7 +243,7 @@ function Home() {
       setError(e instanceof Error ? e.message : String(e));
       setStatus("listening");
     }
-  }, [language, currentIndex, followUps, transcript, grades, speak]);
+  }, [language, domain, experience, currentIndex, followUps, transcript, grades, speak]);
 
   const reset = useCallback(() => {
     audioRef.current?.pause();
@@ -255,6 +255,7 @@ function Home() {
     setCurrentIndex(0);
     setFollowUps(0);
     setError(null);
+    writeSession(null);
   }, []);
 
   const progress = Math.min(currentIndex + (status === "done" ? 1 : 0), TOTAL);
@@ -262,6 +263,32 @@ function Home() {
   const questionNumber = Math.min(progress + (status === "idle" ? 0 : 1), TOTAL);
   const isActive = status === "recording";
   const isListeningState = status === "listening";
+
+  const avgScore = useMemo(() => {
+    if (!grades.length) return 0;
+    return Math.round((grades.reduce((s, g) => s + g.score, 0) / grades.length) * 20);
+  }, [grades]);
+
+  const lastQuestion = QUESTIONS[Math.min(currentIndex, TOTAL - 1)]?.question ?? "";
+
+  // Sync session snapshot to localStorage so the landing page can reflect it.
+  useEffect(() => {
+    if (status === "idle" && transcript.length === 0) {
+      writeSession(null);
+      return;
+    }
+    writeSession({
+      status,
+      domain: domainLabel(domain),
+      experience: experienceLabel(experience),
+      language,
+      questionNumber,
+      total: TOTAL,
+      avgScore,
+      lastQuestion,
+      updatedAt: Date.now(),
+    });
+  }, [status, transcript.length, domain, experience, language, questionNumber, avgScore, lastQuestion]);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background font-sans text-foreground antialiased">
