@@ -170,6 +170,8 @@ function Home() {
         body: JSON.stringify({
           mode: "turn",
           language,
+          domain: domainLabel(domain),
+          experience: experienceLabel(experience),
           currentIndex,
           followUpsUsed: followUps,
           history: nextTranscript,
