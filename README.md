@@ -4,10 +4,10 @@ A voice-first mock interview agent grounded in a fixed reference Q&A set. A cand
 
 Supports **English, Hindi, German**.
 
-## Pipeline
-
 ## Live Website
 https://voiceinterviewai.onrender.com/
+
+## Pipeline
 
 ```
 mic → MediaRecorder → /api/stt (Whisper) → text
