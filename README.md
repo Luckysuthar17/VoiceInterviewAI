@@ -10,7 +10,7 @@ https://voiceinterviewai.onrender.com/
 ## Pipeline
 
 ```
-mic → MediaRecorder → /api/stt (Groq Whisper large-v3-turbo) → text
+mic → browser Web Speech API (SpeechRecognition) → text
        ↓
        + reference Q&A (grounding by index) + history
        ↓
@@ -21,7 +21,7 @@ mic → MediaRecorder → /api/stt (Groq Whisper large-v3-turbo) → text
 
 On interview end, all grades + transcript are sent to `/api/interview` with `mode: "feedback"` for a structured report.
 
-A browser-native fallback (Web Speech API for STT/TTS) is retained in `src/lib/browser-speech.ts` and used automatically if a Groq call fails, so a transient API issue degrades the experience instead of breaking it.
+STT currently runs on the browser's native Web Speech API (`src/lib/browser-speech.ts`) rather than a managed provider — this keeps the demo dependency-free on the input side. A `VITE_STT_PROVIDER` swap point already exists in `src/lib/speech-config.ts` to move STT to a managed API (e.g. Groq Whisper) without touching interview logic. TTS runs on Groq's PlayAI model via `/api/tts`, with the browser's SpeechSynthesis kept as an automatic fallback if that call fails.
 
 ## Reference Q&A
 
@@ -29,7 +29,6 @@ Edit `src/data/interview-questions.json`. No code changes required — the inter
 
 ## Endpoints
 
-- `POST /api/stt` — multipart `file`, `language` → `{ text }` (Groq `whisper-large-v3-turbo`)
 - `POST /api/tts` — `{ text, voice? }` → `audio/mpeg` stream (Groq `playai-tts`)
 - `POST /api/interview` — `{ mode: "start" | "turn" | "feedback", language, currentIndex, followUpsUsed, history, grades? }` (Groq `llama-3.3-70b-versatile`)
 
@@ -46,10 +45,10 @@ For an 8–12 question fixed interview, the interviewer controls flow: we track 
 
 ## Latency notes
 
-Turn = STT (~0.3–1s on Groq's Whisper endpoint) + LLM (~0.7–1.5s on Groq's Llama-3.3-70B, LPU inference) + TTS (~0.3–0.8s). Streaming TTS + streaming LLM tokens into a running TTS request would cut perceived latency further.
+Turn = STT (~0.3–1s, browser-native, effectively free) + LLM (~0.7–1.5s on Groq's Llama-3.3-70B, LPU inference) + TTS (~0.3–0.8s on Groq's PlayAI). Streaming TTS + streaming LLM tokens into a running TTS request would cut perceived latency further.
 
 ## Env
 
-- `GROQ_API_KEY` — powers STT (`whisper-large-v3-turbo`), TTS (`playai-tts`), and interview/chat logic (`llama-3.3-70b-versatile`) via the Groq API. One key for the entire pipeline.
+- `GROQ_API_KEY` — powers TTS (`playai-tts`) and interview/chat logic (`llama-3.3-70b-versatile`) via the Groq API.
 - `NODE_ENV` — `development` locally.
 - `PORT` — optional, defaults per hosting provider.
