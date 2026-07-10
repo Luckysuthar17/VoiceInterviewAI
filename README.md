@@ -1,4 +1,4 @@
-# Voice Interview Coach
+# Voice Interview AI
 
 A voice-first mock interview agent grounded in a fixed reference Q&A set. A candidate speaks with it; it transcribes, retrieves the relevant reference, uses an LLM to interview naturally (follow-ups, corrections, staying on track), speaks its reply back, and produces structured feedback at the end.
 
